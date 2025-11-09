@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="fr.socolin.awesomeLogViewer.module.applicationInsights.state">
+    <consoleSettings>
+      <applicationInsightsConsoleSettings>
+        <option name="ENABLE_FOR_RUN" value="true" />
+      </applicationInsightsConsoleSettings>
+    </consoleSettings>
+  </component>
+</project>

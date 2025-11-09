@@ -1,0 +1,7 @@
+﻿<Mod xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://gitee.com/SC-SPM/SurvivalcraftApi/raw/SCAPI1.8/Survivalcraft.Windows/Content/Assets/Database.xsd">
+  <ProjectTemplate Name="Project" Guid="85023bf8-1c90-4dd1-9442-e6c13691d078">
+    <MemberSubsystemTemplate Name="TerrariaCraftingTableBlockBehavior" Guid="79ad4f46-5daa-4fd2-9ea9-dc40a1d629c1" InheritanceParent="fefb9590-4972-4893-b02a-76063611b745">
+      <Parameter Name="Class" Guid="81cef968-147b-4a4a-9b98-6c7b25a30339" Value="Game.SubsystemTerrariaCraftingTableBlockBehavior" Type="string" />
+    </MemberSubsystemTemplate>
+  </ProjectTemplate>
+</Mod>

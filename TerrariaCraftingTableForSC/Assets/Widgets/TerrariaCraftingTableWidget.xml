@@ -1,0 +1,56 @@
+<TerrariaCraftingTableWidget xmlns="runtime-namespace:Game">
+    <BevelledRectangleWidget BevelSize="3" />
+    <StackPanelWidget Direction="Horizontal" Margin="12, 14">
+      <StackPanelWidget Direction="Vertical">
+        <CanvasWidget Size="436, 26">
+          <LabelWidget Text="[TerrariaCraftingTableWidget:1]" Color="255, 255, 255, 192" />
+          <StackPanelWidget Direction="Horizontal" HorizontalAlignment="Far" VerticalAlignment="Center">
+            <BitmapButtonWidget Name="SortButton" Size="24, 24" NormalSubtexture="{Textures/Gui/TerrariaCraftingTable/Sort}" ClickedSubtexture="{Textures/Gui/TerrariaCraftingTable/Sort}">
+              <RectangleWidget Name="Button.Rectangle" Size="24, 24" TextureLinearFilter="true" HorizontalAlignment="Center" VerticalAlignment="Center" Subtexture="{Textures/Gui/TerrariaCraftingTable/Sort}" OutlineColor="0, 0, 0, 0" FillColor="255, 255, 255" IsVisible="true" TextureAnisotropicFilter="true" BlendState="NonPremultiplied" />
+            </BitmapButtonWidget>
+            <CanvasWidget Size="12, 0" />
+            <BitmapButtonWidget Name="CategoryButton" Size="24, 24" NormalSubtexture="{Textures/Gui/TerrariaCraftingTable/CategorySearch}" ClickedSubtexture="{Textures/Gui/TerrariaCraftingTable/CategorySearch}">
+              <RectangleWidget Name="Button.Rectangle" Size="24, 24" TextureLinearFilter="true" HorizontalAlignment="Center" VerticalAlignment="Center" Subtexture="{Textures/Gui/TerrariaCraftingTable/CategorySearch}" OutlineColor="0, 0, 0, 0" FillColor="255, 255, 255" IsVisible="true" TextureAnisotropicFilter="true" BlendState="NonPremultiplied" />
+            </BitmapButtonWidget>
+          </StackPanelWidget>
+        </CanvasWidget>
+        <CanvasWidget Size="0, 12" />
+        <CanvasWidget Name="RecipeSelectorContainer" Size="444, 320">
+          <BevelledRectangleWidget Style="{Styles/Area}" />
+          <SelectiveFlexPanelWidget Name="RecipeSelector" Direction="Vertical" ItemSize="72, 72" SelectionColor="10, 70, 0, 90" ScrollPosition="0" Margin="4, 4" />
+        </CanvasWidget>
+        <CanvasWidget Size="0, 8" />
+        <CanvasWidget Size="432, 80" Margin="4, 0">
+          <CanvasWidget Size="304, 80">
+            <ScrollPanelWidget Direction="Horizontal" ScrollPosition="0">
+              <CanvasWidget Size="0, 80" />
+              <StackPanelWidget Name="IngredientSlots" Direction="Horizontal">
+              </StackPanelWidget>
+            </ScrollPanelWidget>
+          </CanvasWidget>
+          <StackPanelWidget Direction="Horizontal" HorizontalAlignment="Far">
+            <CanvasWidget Size="56, 72">
+              <ArrowLineWidget Color="0, 0, 0, 96" Width="8" ArrowWidth="24" PointsString="0, 0; 33, 0" HorizontalAlignment="Center" VerticalAlignment="Center" />
+            </CanvasWidget>
+            <TerrariaCraftingRecipeSlotWidget Name="ResultSlot" />
+          </StackPanelWidget>
+        </CanvasWidget>
+        <CanvasWidget Size="0, 8" />
+        <StackPanelWidget Direction="Horizontal" HorizontalAlignment="Center">
+          <BevelledButtonWidget Name="CraftingX1Button" Text="x1" Size="72, 60" Margin="4, 0" />
+          <BevelledButtonWidget Name="CraftingX10Button" Text="x10" Size="72, 60" Margin="4, 0" />
+          <BevelledButtonWidget Name="CraftingX40Button" Text="x40" Size="72, 60" Margin="4, 0" />
+          <BevelledButtonWidget Name="CraftingXMaxButton" Text="[TerrariaCraftingTableWidget:2]" Size="72, 60" Margin="4, 0" />
+          <BevelledButtonWidget Name="AddToFavoritesButton" Size="72, 60" Margin="4, 0">
+            <RectangleWidget Name="AddToFavoritesButtonStar" Size="24, 24" TextureLinearFilter="true" HorizontalAlignment="Center" VerticalAlignment="Center" Subtexture="{Textures/Gui/TerrariaCraftingTable/Star}" OutlineColor="0, 0, 0, 0" FillColor="255, 255, 0" IsVisible="true" TextureAnisotropicFilter="true" BlendState="NonPremultiplied" />
+          </BevelledButtonWidget>
+        </StackPanelWidget>
+      </StackPanelWidget>
+      <CanvasWidget Size="12,0" />
+      <StackPanelWidget Direction="Vertical">
+        <LabelWidget Text="[ChestWidget:2]" Color="255, 255, 255, 192" />
+        <CanvasWidget Size="0, 12" />
+        <GridPanelWidget Name="InventoryGrid" RowsCount="6" ColumnsCount="6" />
+      </StackPanelWidget>
+    </StackPanelWidget>
+</TerrariaCraftingTableWidget>

@@ -1,0 +1,46 @@
+{
+  "Blocks": {
+    "TerrariaCraftingTableBlock:0": {
+      "DisplayName": "泰拉工作台",
+      "Description": "像游戏《泰拉瑞亚》那样无需摆放原料直接合成物品的工作台。原料来源是玩家背包，以及与泰拉工作台相连的箱子，更远处的箱子可通过箱子与泰拉工作台相连。合成结果将放入玩家背包。",
+      "CRDescription:0": "使用工作台合成泰拉工作台"
+    }
+  },
+  "SubsystemTerrariaCraftingTableBlockBehavior": {
+    "1": "已合成 {0} 次，{1} x {2}",
+    "2": "已合成 {0} 次，{1} x {2}，{2} x {3}",
+    "3": "合成失败，可能是原料不足"
+  },
+  "TerrariaCraftingTableWidget": {
+    "1": "排序方式（结果方块）",
+    "2": "分类 | 搜索",
+    "3": "无效的方块 ID",
+    "4": "（支持正则）",
+    "5": "包含材料不足的配方",
+    "6": "排除材料不足的配方",
+    "7": "已添加到收藏",
+    "8": "已从收藏中移除",
+    "SortOrder": {
+      "DisplayOrderAscending": "显示顺序升序",
+      "DisplayOrderDescending": "显示顺序降序",
+      "ContentsAscending": "ID 升序",
+      "ContentsDescending": "ID 降序",
+      "NameAscending": "名称升序",
+      "NameDescending": "名称降序"
+    },
+    "FilterMethod": {
+      "None": "无",
+      "ResultName": "搜索结果名称",
+      "ResultContents": "搜索结果 ID",
+      "IngredientsName": "搜索原料名称",
+      "IngredientsContents": "搜索原料 ID",
+      "Favorite": "收藏"
+    }
+  },
+  "ContentWidgets": {
+    "TerrariaCraftingTableWidget": {
+      "1": "泰拉合成台",
+      "2": "最大"
+    }
+  }
+}

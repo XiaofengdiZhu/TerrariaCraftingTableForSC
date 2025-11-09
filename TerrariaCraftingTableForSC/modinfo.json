@@ -1,0 +1,11 @@
+{
+  "Name": "Terraria Crafting Table 泰拉瑞亚工作台",
+  "Version": "1.0",
+  "ApiVersion": "1.8.1.3",
+  "Description": "Crafting items like Terraria 像泰拉瑞亚那样合成物品",
+  "ScVersion": "2.4.0.0",
+  "Link": "https://github.com/XiaofengdiZhu/TerrariaCraftingTableForSC",
+  "Author": "销锋镝铸 XiaofengdiZhu",
+  "PackageName": "xfdz.TerrariaCraftingTableForSC",
+  "Dependencies": []
+}
