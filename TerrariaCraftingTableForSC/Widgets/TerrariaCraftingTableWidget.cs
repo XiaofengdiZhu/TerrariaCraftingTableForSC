@@ -93,7 +93,7 @@ namespace Game {
                 foreach ((int ingredient, int count) in pair.Key.Ingredients) {
                     bool notEnough = true;
                     if (m_nearbyIngredients.TryGetValue(ingredient, out IngredientInfo ingredientInfo)) {
-                        if (ingredientInfo.Count > count) {
+                        if (ingredientInfo.Count >= count) {
                             notEnough = false;
                         }
                     }
