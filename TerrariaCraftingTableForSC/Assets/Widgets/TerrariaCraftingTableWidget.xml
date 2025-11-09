@@ -5,12 +5,12 @@
         <CanvasWidget Size="436, 26">
           <LabelWidget Text="[TerrariaCraftingTableWidget:1]" Color="255, 255, 255, 192" />
           <StackPanelWidget Direction="Horizontal" HorizontalAlignment="Far" VerticalAlignment="Center">
-            <BitmapButtonWidget Name="SortButton" Size="24, 24" NormalSubtexture="{Textures/Gui/TerrariaCraftingTable/Sort}" ClickedSubtexture="{Textures/Gui/TerrariaCraftingTable/Sort}">
-              <RectangleWidget Name="Button.Rectangle" Size="24, 24" TextureLinearFilter="true" HorizontalAlignment="Center" VerticalAlignment="Center" Subtexture="{Textures/Gui/TerrariaCraftingTable/Sort}" OutlineColor="0, 0, 0, 0" FillColor="255, 255, 255" IsVisible="true" TextureAnisotropicFilter="true" BlendState="NonPremultiplied" />
+            <BitmapButtonWidget Name="SortButton" Size="26, 26" NormalSubtexture="{Textures/Gui/TerrariaCraftingTable/Sort}" ClickedSubtexture="{Textures/Gui/TerrariaCraftingTable/Sort}">
+              <RectangleWidget Name="Button.Rectangle" Size="26, 26" TextureLinearFilter="true" HorizontalAlignment="Center" VerticalAlignment="Center" Subtexture="{Textures/Gui/TerrariaCraftingTable/Sort}" OutlineColor="0, 0, 0, 0" FillColor="255, 255, 255" IsVisible="true" TextureAnisotropicFilter="true" BlendState="NonPremultiplied" />
             </BitmapButtonWidget>
             <CanvasWidget Size="12, 0" />
-            <BitmapButtonWidget Name="CategoryButton" Size="24, 24" NormalSubtexture="{Textures/Gui/TerrariaCraftingTable/CategorySearch}" ClickedSubtexture="{Textures/Gui/TerrariaCraftingTable/CategorySearch}">
-              <RectangleWidget Name="Button.Rectangle" Size="24, 24" TextureLinearFilter="true" HorizontalAlignment="Center" VerticalAlignment="Center" Subtexture="{Textures/Gui/TerrariaCraftingTable/CategorySearch}" OutlineColor="0, 0, 0, 0" FillColor="255, 255, 255" IsVisible="true" TextureAnisotropicFilter="true" BlendState="NonPremultiplied" />
+            <BitmapButtonWidget Name="CategoryButton" Size="26, 26" NormalSubtexture="{Textures/Gui/TerrariaCraftingTable/CategorySearch}" ClickedSubtexture="{Textures/Gui/TerrariaCraftingTable/CategorySearch}">
+              <RectangleWidget Name="Button.Rectangle" Size="26, 26" TextureLinearFilter="true" HorizontalAlignment="Center" VerticalAlignment="Center" Subtexture="{Textures/Gui/TerrariaCraftingTable/CategorySearch}" OutlineColor="0, 0, 0, 0" FillColor="255, 255, 255" IsVisible="true" TextureAnisotropicFilter="true" BlendState="NonPremultiplied" />
             </BitmapButtonWidget>
           </StackPanelWidget>
         </CanvasWidget>
@@ -42,7 +42,7 @@
           <BevelledButtonWidget Name="CraftingX40Button" Text="x40" Size="72, 60" Margin="4, 0" />
           <BevelledButtonWidget Name="CraftingXMaxButton" Text="[TerrariaCraftingTableWidget:2]" Size="72, 60" Margin="4, 0" />
           <BevelledButtonWidget Name="AddToFavoritesButton" Size="72, 60" Margin="4, 0">
-            <RectangleWidget Name="AddToFavoritesButtonStar" Size="24, 24" TextureLinearFilter="true" HorizontalAlignment="Center" VerticalAlignment="Center" Subtexture="{Textures/Gui/TerrariaCraftingTable/Star}" OutlineColor="0, 0, 0, 0" FillColor="255, 255, 0" IsVisible="true" TextureAnisotropicFilter="true" BlendState="NonPremultiplied" />
+            <RectangleWidget Name="AddToFavoritesButtonStar" Size="28, 28" TextureLinearFilter="true" HorizontalAlignment="Center" VerticalAlignment="Center" Subtexture="{Textures/Gui/TerrariaCraftingTable/Star}" OutlineColor="0, 0, 0, 0" FillColor="255, 255, 0" IsVisible="true" TextureAnisotropicFilter="true" BlendState="NonPremultiplied" />
           </BevelledButtonWidget>
         </StackPanelWidget>
       </StackPanelWidget>

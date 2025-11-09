@@ -5,14 +5,14 @@ namespace Game {
     public class TerrariaCraftingTableBlock : Block {
         public BlockMesh m_blockMesh = new();
         public BlockMesh m_standaloneBlockMesh = new();
-        public BoundingBox[] m_collisionBoxes = [new(new Vector3(0f, 0f, 0f), new Vector3(1f, 0.5f, 1f))];
+        public BoundingBox[] m_collisionBoxes = [new(new Vector3(0f, 0f, 0f), new Vector3(1f, 0.5625f, 1f))];
 
         public override void Initialize() {
             Model model = ContentManager.Get<Model>("Models/CraftingTable");
             Matrix boneAbsoluteTransform = BlockMesh.GetBoneAbsoluteTransform(model.FindMesh("CraftingTable").ParentBone);
             m_blockMesh.AppendModelMeshPart(
                 model.FindMesh("CraftingTable").MeshParts[0],
-                boneAbsoluteTransform * Matrix.CreateScale(1f, 0.5f, 1f) * Matrix.CreateTranslation(0.5f, 0f, 0.5f),
+                boneAbsoluteTransform * Matrix.CreateScale(1f, 0.5625f, 1f) * Matrix.CreateTranslation(0.5f, 0f, 0.5f),
                 false,
                 false,
                 false,
@@ -21,7 +21,7 @@ namespace Game {
             );
             m_standaloneBlockMesh.AppendModelMeshPart(
                 model.FindMesh("CraftingTable").MeshParts[0],
-                boneAbsoluteTransform * Matrix.CreateScale(1f, 0.5f, 1f) * Matrix.CreateTranslation(0f, -0.5f, 0f),
+                boneAbsoluteTransform * Matrix.CreateScale(1f, 0.5625f, 1f) * Matrix.CreateTranslation(0f, -0.5f, 0f),
                 false,
                 false,
                 false,
