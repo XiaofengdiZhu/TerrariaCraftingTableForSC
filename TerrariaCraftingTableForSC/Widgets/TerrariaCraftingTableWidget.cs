@@ -295,9 +295,9 @@ namespace Game {
                 CraftAndUpdateSelector(int.MaxValue);
             }
             if (m_addToFavoritesButton.IsClicked
-                && m_recipeSelector.SelectedItem is KeyValuePair<CookedCraftingRecipe, int> selected) {
-                if (m_subsystem.FavoriteCookedRecipes.Add(selected.Key)) {
-                    selected.Key.IsFavorite = true;
+                && m_recipeSelector.SelectedItem is CookedCraftingRecipe selected) {
+                if (m_subsystem.FavoriteCookedRecipes.Add(selected)) {
+                    selected.IsFavorite = true;
                     m_addToFavoritesButtonStar.FillColor = Color.Gray;
                     if (m_recipeSelector.SelectedIndex.HasValue
                         && m_recipeSelector.m_widgetsByIndex.TryGetValue(m_recipeSelector.SelectedIndex.Value, out Widget widget)
@@ -306,8 +306,8 @@ namespace Game {
                     }
                     m_componentPlayer.ComponentGui.DisplaySmallMessage(LanguageControl.Get(fName, "5"), Color.White, true, true);
                 }
-                else if (m_subsystem.FavoriteCookedRecipes.Remove(selected.Key)) {
-                    selected.Key.IsFavorite = false;
+                else if (m_subsystem.FavoriteCookedRecipes.Remove(selected)) {
+                    selected.IsFavorite = false;
                     m_addToFavoritesButtonStar.FillColor = Color.Yellow;
                     if (m_recipeSelector.SelectedIndex.HasValue
                         && m_recipeSelector.m_widgetsByIndex.TryGetValue(m_recipeSelector.SelectedIndex.Value, out Widget widget)
@@ -320,9 +320,9 @@ namespace Game {
         }
 
         public void CraftAndUpdateSelector(int times) {
-            if (m_recipeSelector.SelectedItem is KeyValuePair<CookedCraftingRecipe, int> selected) {
+            if (m_recipeSelector.SelectedItem is CookedCraftingRecipe selected) {
                 times = m_subsystem.Craft(
-                    selected.Key,
+                    selected,
                     times,
                     m_nearbyIngredients,
                     m_minerInventory,
@@ -336,7 +336,7 @@ namespace Game {
         }
 
         public void UpdateSelector() {
-            CookedCraftingRecipe selected = m_recipeSelector.SelectedItem is KeyValuePair<CookedCraftingRecipe, int> pair1 ? pair1.Key : null;
+            CookedCraftingRecipe selected = m_recipeSelector.SelectedItem as CookedCraftingRecipe;
             m_recipeSelector.SelectedItem = null;
             m_recipeSelector.ClearItems();
             List<CookedCraftingRecipe> recipes = m_subsystem.GetAvailableRecipesFromNearbyInventories(
