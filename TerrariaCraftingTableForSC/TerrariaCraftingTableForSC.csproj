@@ -42,7 +42,6 @@
         <Compile Include="CookedCraftingRecipe.cs" />
         <Compile Include="SubsystemTerrariaCraftingTableBlockBehavior.cs" />
         <Compile Include="TerrariaCraftingTableBlock.cs" />
-        <Compile Include="TerrariaCraftingTableInventory.cs" />
         <Compile Include="Widgets\SelectiveFlexPanelWidget.cs" />
         <Compile Include="Widgets\TerrariaCraftingRecipeSlotWidget.cs" />
         <Compile Include="Widgets\TerrariaCraftingTableWidget.cs" />

@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Engine;
 using TemplatesDatabase;
@@ -10,6 +10,22 @@ using IngredientInfo = Game.CookedCraftingRecipe.IngredientInfo;
 
 namespace Game {
     public class SubsystemTerrariaCraftingTableBlockBehavior : SubsystemBlockBehavior {
+        public enum FilterMethod1 {
+            All,
+            Craftable,
+            CraftableAndPartialIngredients
+        }
+
+        public enum FilterMethod2 {
+            All,
+            ResultName,
+            ResultContents,
+            ResultCategory,
+            IngredientsName,
+            IngredientsContents,
+            Favorite
+        }
+
         public SubsystemBlockEntities m_subsystemBlockEntities;
         public SubsystemPickables m_subsystemPickables;
         public SubsystemTerrain m_subsystemTerrain;
@@ -276,10 +292,12 @@ namespace Game {
             base.Dispose();
         }
 
-        public Dictionary<CookedCraftingRecipe, int> GetAvailableRecipesFromNearbyInventories(Point3 start,
+        public List<CookedCraftingRecipe> GetAvailableRecipesFromNearbyInventories(Point3 start,
             out Dictionary<int, IngredientInfo> ingredients,
             ComponentInventoryBase extraInventory = null,
-            bool includingZeroResult = false) {
+            FilterMethod1 filter1 = FilterMethod1.All,
+            FilterMethod2 filter2 = FilterMethod2.All,
+            string filter2String = null) {
             ingredients = [];
             if (extraInventory != null) {
                 GetIngredientsFromInventory(extraInventory, ingredients);
@@ -287,7 +305,7 @@ namespace Game {
             foreach (ComponentInventoryBase inventory in GetNearbyInventories(start)) {
                 GetIngredientsFromInventory(inventory, ingredients);
             }
-            return GetAvailableRecipesFromIngredients(ingredients, includingZeroResult);
+            return GetAvailableRecipesFromIngredients(ingredients, filter1, filter2, filter2String);
         }
 
         public HashSet<ComponentInventoryBase> GetNearbyInventories(Point3 start) {
@@ -342,19 +360,108 @@ namespace Game {
             }
         }
 
-        public Dictionary<CookedCraftingRecipe, int> GetAvailableRecipesFromIngredients(Dictionary<int, IngredientInfo> ingredients,
-            bool includingZeroResult = false) {
-            Dictionary<CookedCraftingRecipe, int> result = [];
+        public List<CookedCraftingRecipe> GetAvailableRecipesFromIngredients(Dictionary<int, IngredientInfo> ingredients,
+            FilterMethod1 filter1 = FilterMethod1.All,
+            FilterMethod2 filter2 = FilterMethod2.All,
+            string filter2String = null) {
+            List<CookedCraftingRecipe> result = [];
+            bool isFilter2Contents = filter2 is FilterMethod2.ResultContents or FilterMethod2.IngredientsContents;
+            Regex filter2Regex = !isFilter2Contents && filter2 is FilterMethod2.ResultName or FilterMethod2.IngredientsName && filter2String != null
+                ? new Regex(filter2String, RegexOptions.IgnoreCase)
+                : null;
+            int filter2Contents = isFilter2Contents ? int.TryParse(filter2String, out int value) ? value : 0 : 0;
             foreach (CookedCraftingRecipe recipe in CookedRecipes) {
-                int resultCount = recipe.CalculateMaxResultCount(ingredients);
-                if (includingZeroResult || resultCount > 0) {
-                    if (result.TryGetValue(recipe, out int count)) {
-                        result[recipe] = count + resultCount;
+                switch (filter2) {
+                    case FilterMethod2.ResultName:
+                        if (!(filter2Regex?.IsMatch(
+                                BlocksManager.Blocks[Terrain.ExtractContents(recipe.ResultValue)]
+                                    .GetDisplayName(m_subsystemTerrain, recipe.ResultValue)
+                            )
+                            ?? true)) {
+                            continue;
+                        }
+                        break;
+                    case FilterMethod2.ResultContents:
+                        if (Terrain.ExtractContents(recipe.ResultValue) != filter2Contents) {
+                            continue;
+                        }
+                        break;
+                    case FilterMethod2.ResultCategory:
+                        if (filter2String == null
+                            || BlocksManager.Blocks[Terrain.ExtractContents(recipe.ResultValue)].GetCategory(recipe.ResultValue) != filter2String) {
+                            continue;
+                        }
+                        break;
+                    case FilterMethod2.Favorite:
+                        if (!FavoriteCookedRecipes.Contains(recipe)) {
+                            continue;
+                        }
+                        break;
+                }
+                int times = 0;
+                bool anyIngredientInInventory = false;
+                switch (filter1) {
+                    case FilterMethod1.Craftable:
+                        times = recipe.CalculateMaxCraftingTimes(ingredients);
+                        if (times <= 0) {
+                            continue;
+                        }
+                        anyIngredientInInventory = true;
+                        break;
+                    case FilterMethod1.CraftableAndPartialIngredients:
+                        if (recipe.Ingredients.Any(ingredient => ingredients.ContainsKey(ingredient.Key))) {
+                            times = recipe.CalculateMaxCraftingTimes(ingredients);
+                            anyIngredientInInventory = true;
+                        }
+                        else {
+                            continue;
+                        }
+                        break;
+                }
+                //这两种筛选预计耗时较高，所以放在后面判断
+                switch (filter2) {
+                    case FilterMethod2.IngredientsName: {
+                        if (filter2Regex == null) {
+                            break;
+                        }
+                        bool notFound = true;
+                        foreach ((int ingredient, int _) in recipe.Ingredients) {
+                            if (filter2Regex.IsMatch(
+                                    BlocksManager.Blocks[Terrain.ExtractContents(ingredient)].GetDisplayName(m_subsystemTerrain, ingredient)
+                                )) {
+                                notFound = false;
+                                break;
+                            }
+                        }
+                        if (notFound) {
+                            continue;
+                        }
+                        break;
                     }
-                    else {
-                        result.Add(recipe, resultCount);
+                    case FilterMethod2.IngredientsContents: {
+                        if (filter2Contents == 0) {
+                            break;
+                        }
+                        bool notFound = true;
+                        foreach ((int ingredient, int _) in recipe.Ingredients) {
+                            if (Terrain.ExtractContents(ingredient) == filter2Contents) {
+                                notFound = false;
+                                break;
+                            }
+                        }
+                        if (notFound) {
+                            continue;
+                        }
+                        break;
                     }
                 }
+                if (filter1 == FilterMethod1.All) {
+                    times = recipe.CalculateMaxCraftingTimes(ingredients);
+                    anyIngredientInInventory = recipe.Ingredients.Any(ingredient => ingredients.ContainsKey(ingredient.Key));
+                }
+                recipe.CraftableTimes = times;
+                recipe.AnyIngredientInInventory = anyIngredientInInventory;
+                result.Add(recipe);
             }
             return result;
         }
@@ -381,7 +488,7 @@ namespace Game {
                 );
                 return 0;
             }
-            times = Math.Min(recipe.CalculateMaxResultCount(ingredients) / recipe.ResultCount, times);
+            times = Math.Min(recipe.CalculateMaxCraftingTimes(ingredients), times);
             if (times <= 0) {
                 componentPlayer?.ComponentGui.DisplaySmallMessage(LanguageControl.Get(fName, "3"), Color.White, true, true);
                 return 0;
@@ -462,7 +569,7 @@ namespace Game {
                                 times * recipe.RemainsCount
                             ),
                             Color.White,
-                            true,
+                            false,
                             true
                         );
                     }
@@ -470,7 +577,7 @@ namespace Game {
                         componentPlayer.ComponentGui.DisplaySmallMessage(
                             string.Format(LanguageControl.Get(fName, "1"), times, resultDisplayNamee, times * recipe.ResultCount),
                             Color.White,
-                            true,
+                            false,
                             true
                         );
                     }

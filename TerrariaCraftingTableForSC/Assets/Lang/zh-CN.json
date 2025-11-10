@@ -9,17 +9,29 @@
   "SubsystemTerrariaCraftingTableBlockBehavior": {
     "1": "已合成 {0} 次，{1} x {2}",
     "2": "已合成 {0} 次，{1} x {2}，{2} x {3}",
-    "3": "合成失败，可能是原料不足"
+    "3": "合成失败，可能是原料不足",
+    "FilterMethod1": {
+      "All": "全部",
+      "Craftable": "可合成",
+      "CraftableAndPartialIngredients": "可合成 & 部分材料不足"
+    },
+    "FilterMethod2": {
+      "All": "全部",
+      "ResultName": "搜索结果名称",
+      "ResultContents": "搜索结果 ID",
+      "IngredientsName": "搜索原料名称",
+      "IngredientsContents": "搜索原料 ID",
+      "Favorite": "收藏"
+    }
   },
   "TerrariaCraftingTableWidget": {
     "1": "排序方式（结果方块）",
     "2": "分类 | 搜索",
     "3": "无效的方块 ID",
     "4": "（支持正则）",
-    "5": "包含材料不足的配方",
-    "6": "排除材料不足的配方",
-    "7": "已添加到收藏",
-    "8": "已从收藏中移除",
+    "5": "已添加到收藏",
+    "6": "已从收藏中移除",
+    "7": "筛选",
     "SortOrder": {
       "DisplayOrderAscending": "显示顺序升序",
       "DisplayOrderDescending": "显示顺序降序",
@@ -27,14 +39,6 @@
       "ContentsDescending": "ID 降序",
       "NameAscending": "名称升序",
       "NameDescending": "名称降序"
-    },
-    "FilterMethod": {
-      "None": "无",
-      "ResultName": "搜索结果名称",
-      "ResultContents": "搜索结果 ID",
-      "IngredientsName": "搜索原料名称",
-      "IngredientsContents": "搜索原料 ID",
-      "Favorite": "收藏"
     }
   },
   "ContentWidgets": {

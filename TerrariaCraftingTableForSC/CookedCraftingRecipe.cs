@@ -18,6 +18,10 @@ namespace Game {
 
         public bool IsFavorite;
 
+        //以下是临时赋值
+        public int CraftableTimes = 0;
+        public bool AnyIngredientInInventory = false;
+
         public CookedCraftingRecipe(int resultValue,
             int resultCount,
             int remainsValue = 0,
@@ -38,7 +42,7 @@ namespace Game {
         ///     键：方块完整值，其中第11位为0时，数量是数据位为任何值时的总数<br />
         ///     值：数量
         /// </param>
-        public int CalculateMaxResultCount(Dictionary<int, IngredientInfo> input) {
+        public int CalculateMaxCraftingTimes(Dictionary<int, IngredientInfo> input) {
             int times = int.MaxValue;
             foreach ((int requiredValue, int requiredCount) in Ingredients) {
                 if (!input.TryGetValue(requiredValue, out IngredientInfo info)) {
@@ -46,7 +50,7 @@ namespace Game {
                 }
                 times = Math.Min(times, info.Count / requiredCount);
             }
-            return times * ResultCount;
+            return times;
         }
 
         public override bool Equals(object obj) => obj is CookedCraftingRecipe other && Equals(other);

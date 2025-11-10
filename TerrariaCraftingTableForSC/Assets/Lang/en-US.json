@@ -9,17 +9,29 @@
   "SubsystemTerrariaCraftingTableBlockBehavior": {
     "1": "Crafted {0} times, {1} x {2}",
     "2": "Crafted {0} times, {1} x {2}, {2} x {3}",
-    "3": "Failed. Perhaps due to lack of ingredients"
+    "3": "Failed. Perhaps due to lack of ingredients",
+    "FilterMethod1": {
+      "All": "All",
+      "Craftable": "Craftable",
+      "CraftableAndPartialIngredients": "Craftable & Partial Ingredients"
+    },
+    "FilterMethod2": {
+      "All": "All",
+      "ResultName": "Search Result Name",
+      "ResultContents": "Search Result Contents",
+      "IngredientsName": "Search Ingredients Name",
+      "IngredientsContents": "Search Ingredients Contents",
+      "Favorite": "Favorite"
+    }
   },
   "TerrariaCraftingTableWidget": {
     "1": "Sort Order (Result Block)",
     "2": "Categories | Search",
     "3": "Invalid Block Contents",
     "4": " (Supports RegExp)",
-    "5": "Including Recipes with Zero Result",
-    "6": "Excluding Recipes with Zero Result",
-    "7": "Added to Favorites",
-    "8": "Removed from Favorites",
+    "5": "Added to Favorites",
+    "6": "Removed from Favorites",
+    "11": "Filter",
     "SortOrder": {
       "DisplayOrderAscending": "Display Order Ascending",
       "DisplayOrderDescending": "Display Order Descending",
@@ -27,14 +39,6 @@
       "ContentsDescending": "Contents Descending",
       "NameAscending": "Name Ascending",
       "NameDescending": "Name Descending"
-    },
-    "FilterMethod": {
-      "None": "None",
-      "ResultName": "Search Result Name",
-      "ResultContents": "Search Result Contents",
-      "IngredientsName": "Search Ingredients Name",
-      "IngredientsContents": "Search Ingredients Contents",
-      "Favorite": "Favorite"
     }
   },
   "ContentWidgets": {

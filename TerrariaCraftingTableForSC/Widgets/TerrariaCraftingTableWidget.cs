@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using Engine;
 using IngredientInfo = Game.CookedCraftingRecipe.IngredientInfo;
+using FilterMethod1 = Game.SubsystemTerrariaCraftingTableBlockBehavior.FilterMethod1;
+using FilterMethod2 = Game.SubsystemTerrariaCraftingTableBlockBehavior.FilterMethod2;
 
 namespace Game {
     public class TerrariaCraftingTableWidget : CanvasWidget {
@@ -18,18 +19,9 @@ namespace Game {
             NameDescending
         }
 
-        public enum FilterMethod {
-            None,
-            ResultName,
-            ResultContents,
-            ResultCategory,
-            IngredientsName,
-            IngredientsContents,
-            Favorite
-        }
-
         public ButtonWidget m_sortButton;
-        public ButtonWidget m_categoryButton;
+        public ButtonWidget m_filter1Button;
+        public ButtonWidget m_filter2Button;
         public CanvasWidget m_recipeSelectorContainer;
         public SelectiveFlexPanelWidget m_recipeSelector;
         public StackPanelWidget m_ingredientSlots;
@@ -48,12 +40,16 @@ namespace Game {
         public ComponentPlayer m_componentPlayer;
 
         public Dictionary<int, IngredientInfo> m_nearbyIngredients;
-        public bool m_includingZeroResult;
-        public FilterMethod m_filterMethod = FilterMethod.None;
-        public string m_filterString;
+        public FilterMethod1 m_filter1 = FilterMethod1.Craftable;
+        public FilterMethod2 m_filter2 = FilterMethod2.All;
+        public string m_filter2String;
 
         public static SortOrder m_sortOrder = SortOrder.DisplayOrderAscending;
         public static StringComparer m_stringComparer;
+
+        public static Color CraftableColor = Color.Transparent;
+        public static Color NoIngredientsColor = new(70, 10, 0, 90);
+        public static Color PartialIngredientsColor = new(70, 70, 10, 90);
         public const string fName = "TerrariaCraftingTableWidget";
 
         public TerrariaCraftingTableWidget(SubsystemTerrariaCraftingTableBlockBehavior subsystem,
@@ -73,36 +69,43 @@ namespace Game {
             }
             LoadContents(this, ContentManager.Get<XElement>("Widgets/TerrariaCraftingTableWidget"));
             m_sortButton = Children.Find<ButtonWidget>("SortButton");
-            m_categoryButton = Children.Find<ButtonWidget>("CategoryButton");
+            m_filter1Button = Children.Find<ButtonWidget>("Filter1Button");
+            m_filter2Button = Children.Find<ButtonWidget>("Filter2Button");
             m_recipeSelectorContainer = Children.Find<CanvasWidget>("RecipeSelectorContainer");
             m_recipeSelector = Children.Find<SelectiveFlexPanelWidget>("RecipeSelector");
-            m_recipeSelector.ItemWidgetFactory = o => o is KeyValuePair<CookedCraftingRecipe, int> pair
+            m_recipeSelector.ItemWidgetFactory = o => o is CookedCraftingRecipe recipe
                 ? new TerrariaCraftingRecipeSlotWidget {
-                    Value = pair.Key.ResultValue,
-                    Count = pair.Value,
-                    IsBevelledRectangleVisible = false,
-                    IsInvalid = pair.Value == 0,
-                    IsStarVisible = pair.Key.IsFavorite
+                    Value = recipe.ResultValue,
+                    Count = recipe.CraftableTimes * recipe.ResultCount,
+                    NoBevel = true,
+                    CenterColor = recipe.AnyIngredientInInventory
+                        ? recipe.CraftableTimes > 0 ? CraftableColor : PartialIngredientsColor
+                        : NoIngredientsColor,
+                    IsStarVisible = recipe.IsFavorite
                 }
                 : null;
             m_recipeSelector.ItemClicked = o => {
-                if (o is not KeyValuePair<CookedCraftingRecipe, int> pair) {
+                if (o is not CookedCraftingRecipe recipe) {
                     return;
                 }
                 m_ingredientSlots.ClearChildren();
-                foreach ((int ingredient, int count) in pair.Key.Ingredients) {
-                    bool notEnough = true;
-                    if (m_nearbyIngredients.TryGetValue(ingredient, out IngredientInfo ingredientInfo)) {
-                        if (ingredientInfo.Count >= count) {
-                            notEnough = false;
+                foreach ((int ingredient, int count) in recipe.Ingredients) {
+                    int countInInventory = m_nearbyIngredients.TryGetValue(ingredient, out IngredientInfo ingredientInfo) ? ingredientInfo.Count : 0;
+                    m_ingredientSlots.Children.Add(
+                        new TerrariaCraftingRecipeSlotWidget {
+                            Value = ingredient,
+                            Count = count,
+                            CenterColor = countInInventory == 0 ? NoIngredientsColor :
+                                countInInventory < count ? PartialIngredientsColor : CraftableColor,
+                            IsClickable = true
                         }
-                    }
-                    m_ingredientSlots.Children.Add(new TerrariaCraftingRecipeSlotWidget { Value = ingredient, Count = count, IsInvalid = notEnough });
+                    );
                 }
-                m_resultSlot.Value = pair.Key.ResultValue;
-                m_resultSlot.Count = pair.Key.ResultCount;
-                m_resultSlot.IsInvalid = pair.Value == 0;
-                m_addToFavoritesButtonStar.FillColor = pair.Key.IsFavorite ? Color.Gray : Color.Yellow;
+                m_resultSlot.Value = recipe.ResultValue;
+                m_resultSlot.Count = recipe.ResultCount;
+                m_resultSlot.CenterColor = recipe.CraftableTimes > 0 ? CraftableColor : NoIngredientsColor;
+                m_resultSlot.IsClickable = true;
+                m_addToFavoritesButtonStar.FillColor = recipe.IsFavorite ? Color.Gray : Color.Yellow;
             };
             UpdateSelector();
             m_ingredientSlots = Children.Find<StackPanelWidget>("IngredientSlots");
@@ -173,7 +176,7 @@ namespace Game {
                         LanguageControl.Get(fName, "1"),
                         (SortOrder[])Enum.GetValues(typeof(SortOrder)),
                         56f,
-                        o => LanguageControl.Get(fName, "SortOrder", o.ToString()),
+                        o => o is SortOrder sortOrder ? LanguageControl.Get(fName, "SortOrder", sortOrder.ToString()) : null,
                         o => {
                             if (o is SortOrder sortOrder) {
                                 m_sortOrder = sortOrder;
@@ -183,16 +186,32 @@ namespace Game {
                     )
                 );
             }
-            if (m_categoryButton.IsClicked) {
-                List<string> items = [
-                    "None",
-                    "IncludingZeroResult",
-                    "ResultName",
-                    "ResultContents",
-                    "IngredientsName",
-                    "IngredientsContents",
-                    "Favorite"
-                ];
+            if (m_filter1Button.IsClicked) {
+                DialogsManager.ShowDialog(
+                    m_componentPlayer.GuiWidget,
+                    new ListSelectionDialog(
+                        LanguageControl.Get(fName, "7"),
+                        (FilterMethod1[])Enum.GetValues(typeof(FilterMethod1)),
+                        56f,
+                        o => o is FilterMethod1 filter1
+                            ? new LabelWidget {
+                                Text = LanguageControl.Get("SubsystemTerrariaCraftingTableBlockBehavior", "FilterMethod1", filter1.ToString()),
+                                Color = filter1 == m_filter1 ? new Color(50, 150, 35) : Color.White,
+                                HorizontalAlignment = WidgetAlignment.Center,
+                                VerticalAlignment = WidgetAlignment.Center
+                            }
+                            : null,
+                        o => {
+                            if (o is FilterMethod1 filterMethod1) {
+                                m_filter1 = filterMethod1;
+                                UpdateSelector();
+                            }
+                        }
+                    )
+                );
+            }
+            if (m_filter2Button.IsClicked) {
+                List<string> items = ["All", "ResultName", "ResultContents", "IngredientsName", "IngredientsContents", "Favorite"];
                 items.AddRange(BlocksManager.Categories);
                 DialogsManager.ShowDialog(
                     m_componentPlayer.GuiWidget,
@@ -203,13 +222,24 @@ namespace Game {
                         o => o is string str
                             ? new LabelWidget {
                                 Text = str switch {
-                                    "None" => LanguageControl.Get(fName, "FilterMethod", "None"),
-                                    "IncludingZeroResult" => LanguageControl.Get(fName, m_includingZeroResult ? "6" : "5"),
-                                    "ResultName" => LanguageControl.Get(fName, "FilterMethod", "ResultName"),
-                                    "ResultContents" => LanguageControl.Get(fName, "FilterMethod", "ResultContents"),
-                                    "IngredientsName" => LanguageControl.Get(fName, "FilterMethod", "IngredientsName"),
-                                    "IngredientsContents" => LanguageControl.Get(fName, "FilterMethod", "IngredientsContents"),
-                                    "Favorite" => LanguageControl.Get(fName, "FilterMethod", "Favorite"),
+                                    "All" => LanguageControl.Get("SubsystemTerrariaCraftingTableBlockBehavior", "FilterMethod2", "All"),
+                                    "ResultName" => LanguageControl.Get("SubsystemTerrariaCraftingTableBlockBehavior", "FilterMethod2", "ResultName"),
+                                    "ResultContents" => LanguageControl.Get(
+                                        "SubsystemTerrariaCraftingTableBlockBehavior",
+                                        "FilterMethod2",
+                                        "ResultContents"
+                                    ),
+                                    "IngredientsName" => LanguageControl.Get(
+                                        "SubsystemTerrariaCraftingTableBlockBehavior",
+                                        "FilterMethod2",
+                                        "IngredientsName"
+                                    ),
+                                    "IngredientsContents" => LanguageControl.Get(
+                                        "SubsystemTerrariaCraftingTableBlockBehavior",
+                                        "FilterMethod2",
+                                        "IngredientsContents"
+                                    ),
+                                    "Favorite" => LanguageControl.Get("SubsystemTerrariaCraftingTableBlockBehavior", "FilterMethod2", "Favorite"),
                                     _ => LanguageControl.Get("BlocksManager", str)
                                 },
                                 Color = str switch {
@@ -227,27 +257,23 @@ namespace Game {
                         o => {
                             if (o is string str) {
                                 switch (str) {
-                                    case "None":
-                                        m_filterMethod = FilterMethod.None;
-                                        m_filterString = null;
+                                    case "All":
+                                        m_filter2 = FilterMethod2.All;
+                                        m_filter2String = null;
                                         UpdateSelector();
                                         break;
-                                    case "IncludingZeroResult":
-                                        m_includingZeroResult = !m_includingZeroResult;
-                                        UpdateSelector();
-                                        break;
-                                    case "ResultName": PopupSearchDialog(FilterMethod.ResultName); break;
-                                    case "ResultContents": PopupSearchDialog(FilterMethod.ResultContents); break;
-                                    case "IngredientsName": PopupSearchDialog(FilterMethod.IngredientsName); break;
-                                    case "IngredientsContents": PopupSearchDialog(FilterMethod.IngredientsContents); break;
+                                    case "ResultName": PopupSearchDialog(FilterMethod2.ResultName); break;
+                                    case "ResultContents": PopupSearchDialog(FilterMethod2.ResultContents); break;
+                                    case "IngredientsName": PopupSearchDialog(FilterMethod2.IngredientsName); break;
+                                    case "IngredientsContents": PopupSearchDialog(FilterMethod2.IngredientsContents); break;
                                     case "Favorite":
-                                        m_filterMethod = FilterMethod.Favorite;
-                                        m_filterString = null;
+                                        m_filter2 = FilterMethod2.Favorite;
+                                        m_filter2String = null;
                                         UpdateSelector();
                                         break;
                                     default:
-                                        m_filterMethod = FilterMethod.ResultCategory;
-                                        m_filterString = str;
+                                        m_filter2 = FilterMethod2.ResultCategory;
+                                        m_filter2String = str;
                                         UpdateSelector();
                                         break;
                                 }
@@ -278,7 +304,7 @@ namespace Game {
                         && widget is TerrariaCraftingRecipeSlotWidget slotWidget) {
                         slotWidget.IsStarVisible = true;
                     }
-                    m_componentPlayer.ComponentGui.DisplaySmallMessage(LanguageControl.Get(fName, "7"), Color.White, true, true);
+                    m_componentPlayer.ComponentGui.DisplaySmallMessage(LanguageControl.Get(fName, "5"), Color.White, true, true);
                 }
                 else if (m_subsystem.FavoriteCookedRecipes.Remove(selected.Key)) {
                     selected.Key.IsFavorite = false;
@@ -288,7 +314,7 @@ namespace Game {
                         && widget is TerrariaCraftingRecipeSlotWidget slotWidget) {
                         slotWidget.IsStarVisible = false;
                     }
-                    m_componentPlayer.ComponentGui.DisplaySmallMessage(LanguageControl.Get(fName, "8"), Color.White, true, true);
+                    m_componentPlayer.ComponentGui.DisplaySmallMessage(LanguageControl.Get(fName, "6"), Color.White, true, true);
                 }
             }
         }
@@ -313,64 +339,38 @@ namespace Game {
             CookedCraftingRecipe selected = m_recipeSelector.SelectedItem is KeyValuePair<CookedCraftingRecipe, int> pair1 ? pair1.Key : null;
             m_recipeSelector.SelectedItem = null;
             m_recipeSelector.ClearItems();
-            Dictionary<CookedCraftingRecipe, int> dictionary = m_subsystem.GetAvailableRecipesFromNearbyInventories(
+            List<CookedCraftingRecipe> recipes = m_subsystem.GetAvailableRecipesFromNearbyInventories(
                 m_position,
                 out m_nearbyIngredients,
                 m_minerInventory is ComponentInventoryBase inventoryBase ? inventoryBase : null,
-                m_includingZeroResult
+                m_filter1,
+                m_filter2,
+                m_filter2String
             );
-            Regex regex = m_filterMethod is FilterMethod.ResultName or FilterMethod.IngredientsName
-                ? new Regex(m_filterString, RegexOptions.IgnoreCase)
-                : null;
-            IEnumerable<KeyValuePair<CookedCraftingRecipe, int>> filteredDictionary = m_filterMethod switch {
-                FilterMethod.ResultName => dictionary.Where(pair2 => regex!.IsMatch(
-                        BlocksManager.Blocks[Terrain.ExtractContents(pair2.Key.ResultValue)].GetDisplayName(m_subsystemTerrain, pair2.Key.ResultValue)
-                    )
+            IOrderedEnumerable<CookedCraftingRecipe> sortedRecipes = m_sortOrder switch {
+                SortOrder.DisplayOrderDescending => recipes.OrderByDescending(recipe => BlocksManager
+                    .Blocks[Terrain.ExtractContents(recipe.ResultValue)]
+                    .GetDisplayOrder(recipe.ResultValue)
                 ),
-                FilterMethod.ResultContents => int.TryParse(m_filterString, out int num)
-                    ? dictionary.Where(pair2 => Terrain.ExtractContents(pair2.Key.ResultValue) == num)
-                    : dictionary,
-                FilterMethod.ResultCategory => dictionary.Where(pair2 => BlocksManager.Blocks[Terrain.ExtractContents(pair2.Key.ResultValue)]
-                        .GetCategory(pair2.Key.ResultValue)
-                    == m_filterString
-                ),
-                FilterMethod.IngredientsName => dictionary.Where(pair2 => pair2.Key.Ingredients.Any(pair3 => regex!.IsMatch(
-                            BlocksManager.Blocks[Terrain.ExtractContents(pair3.Key)].GetDisplayName(m_subsystemTerrain, pair3.Key)
-                        )
-                    )
-                ),
-                FilterMethod.IngredientsContents => int.TryParse(m_filterString, out int num2)
-                    ? dictionary.Where(pair2 => pair2.Key.Ingredients.Any(pair3 => Terrain.ExtractContents(pair3.Key) == num2))
-                    : dictionary,
-                FilterMethod.Favorite => dictionary.Where(pair2 => pair2.Key.IsFavorite),
-                _ => dictionary
-            };
-            IOrderedEnumerable<KeyValuePair<CookedCraftingRecipe, int>> sortedDictionary = m_sortOrder switch {
-                SortOrder.DisplayOrderDescending => filteredDictionary.OrderByDescending(pair3 => BlocksManager
-                    .Blocks[Terrain.ExtractContents(pair3.Key.ResultValue)]
-                    .GetDisplayOrder(pair3.Key.ResultValue)
-                ),
-                SortOrder.ContentsAscending => filteredDictionary.OrderBy(pair3 => Terrain.ExtractContents(pair3.Key.ResultValue)),
-                SortOrder.ContentsDescending => filteredDictionary.OrderByDescending(pair3 => Terrain.ExtractContents(pair3.Key.ResultValue)),
-                SortOrder.NameAscending => filteredDictionary.OrderBy(
-                    pair3 => BlocksManager.Blocks[Terrain.ExtractContents(pair3.Key.ResultValue)]
-                        .GetDisplayName(m_subsystemTerrain, pair3.Key.ResultValue),
+                SortOrder.ContentsAscending => recipes.OrderBy(recipe => Terrain.ExtractContents(recipe.ResultValue)),
+                SortOrder.ContentsDescending => recipes.OrderByDescending(recipe => Terrain.ExtractContents(recipe.ResultValue)),
+                SortOrder.NameAscending => recipes.OrderBy(
+                    recipe => BlocksManager.Blocks[Terrain.ExtractContents(recipe.ResultValue)]
+                        .GetDisplayName(m_subsystemTerrain, recipe.ResultValue),
                     m_stringComparer
                 ),
-                SortOrder.NameDescending => filteredDictionary.OrderByDescending(
-                    pair3 => BlocksManager.Blocks[Terrain.ExtractContents(pair3.Key.ResultValue)]
-                        .GetDisplayName(m_subsystemTerrain, pair3.Key.ResultValue),
+                SortOrder.NameDescending => recipes.OrderByDescending(
+                    recipe => BlocksManager.Blocks[Terrain.ExtractContents(recipe.ResultValue)]
+                        .GetDisplayName(m_subsystemTerrain, recipe.ResultValue),
                     m_stringComparer
                 ),
-                _ => filteredDictionary.OrderBy(pair3 => BlocksManager.Blocks[Terrain.ExtractContents(pair3.Key.ResultValue)]
-                    .GetDisplayOrder(pair3.Key.ResultValue)
-                )
+                _ => recipes.OrderBy(recipe => BlocksManager.Blocks[Terrain.ExtractContents(recipe.ResultValue)].GetDisplayOrder(recipe.ResultValue))
             };
-            foreach (KeyValuePair<CookedCraftingRecipe, int> pair4 in sortedDictionary) {
-                m_recipeSelector.AddItem(pair4);
+            foreach (CookedCraftingRecipe recipe in sortedRecipes) {
+                m_recipeSelector.AddItem(recipe);
                 if (selected != null
-                    && selected.Equals(pair4.Key)) {
-                    m_recipeSelector.SelectedItem = pair4;
+                    && selected.Equals(recipe)) {
+                    m_recipeSelector.SelectedItem = recipe;
                 }
             }
             if (m_recipeSelector.SelectedItem != null) {
@@ -378,28 +378,28 @@ namespace Game {
             }
         }
 
-        public void PopupSearchDialog(FilterMethod filterMethod) {
+        public void PopupSearchDialog(FilterMethod2 filterMethod2) {
             string text = null;
             bool isContents = false;
-            switch (filterMethod) {
-                case FilterMethod.ResultContents:
-                case FilterMethod.IngredientsContents: {
+            switch (filterMethod2) {
+                case FilterMethod2.ResultContents:
+                case FilterMethod2.IngredientsContents: {
                     isContents = true;
-                    if (int.TryParse(m_filterString, out _)) {
-                        text = m_filterString;
+                    if (int.TryParse(m_filter2String, out _)) {
+                        text = m_filter2String;
                     }
                     break;
                 }
-                case FilterMethod.ResultName:
-                case FilterMethod.IngredientsName: {
-                    if (!int.TryParse(m_filterString, out _)) {
-                        text = m_filterString;
+                case FilterMethod2.ResultName:
+                case FilterMethod2.IngredientsName: {
+                    if (!int.TryParse(m_filter2String, out _)) {
+                        text = m_filter2String;
                     }
                     break;
                 }
                 default: return;
             }
-            string title = LanguageControl.Get(fName, "FilterMethod", filterMethod.ToString());
+            string title = LanguageControl.Get(fName, "FilterMethod", filterMethod2.ToString());
             if (!isContents) {
                 title += LanguageControl.Get(fName, "4");
             }
@@ -417,8 +417,8 @@ namespace Game {
                         if (isContents) {
                             if (int.TryParse(str, out int num)
                                 || num > 1023) {
-                                m_filterMethod = filterMethod;
-                                m_filterString = str;
+                                m_filter2 = filterMethod2;
+                                m_filter2String = str;
                                 UpdateSelector();
                             }
                             else {
@@ -429,8 +429,8 @@ namespace Game {
                             }
                         }
                         else {
-                            m_filterMethod = filterMethod;
-                            m_filterString = str;
+                            m_filter2 = filterMethod2;
+                            m_filter2String = str;
                             UpdateSelector();
                         }
                     }

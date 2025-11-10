@@ -3,13 +3,12 @@ using Engine;
 
 namespace Game {
     public class TerrariaCraftingRecipeSlotWidget : CanvasWidget {
-        public RectangleWidget m_backgroundWidget;
+        public RectangleWidget m_noBevelBackground;
         public BevelledRectangleWidget m_bevelledRectangleWidget;
         public BlockIconWidget m_blockIconWidget;
         public LabelWidget m_labelWidget;
         public RectangleWidget m_starWidget;
-
-        public static Color InvalidColor = new(70, 10, 0, 90);
+        public ClickableWidget m_clickableWidget;
 
         public int Value {
             get => m_blockIconWidget.Value;
@@ -40,23 +39,31 @@ namespace Game {
             }
         }
 
-        public bool IsBevelledRectangleVisible {
-            get => m_bevelledRectangleWidget.IsVisible;
-            set {
-                m_bevelledRectangleWidget.IsVisible = value;
-                IsInvalid = IsInvalid;
-            }
-        }
-
-        public bool IsInvalid {
+        public bool NoBevel {
             get => field;
             set {
                 field = value;
-                if (IsBevelledRectangleVisible) {
-                    m_bevelledRectangleWidget.CenterColor = value ? InvalidColor : Color.Transparent;
+                if (value) {
+                    m_bevelledRectangleWidget.IsVisible = false;
+                    m_noBevelBackground.IsVisible = true;
                 }
                 else {
-                    m_backgroundWidget.IsVisible = value;
+                    m_bevelledRectangleWidget.IsVisible = true;
+                    m_noBevelBackground.IsVisible = false;
+                }
+                CenterColor = CenterColor;
+            }
+        }
+
+        public Color CenterColor {
+            get => field;
+            set {
+                field = value;
+                if (NoBevel) {
+                    m_noBevelBackground.FillColor = value;
+                }
+                else {
+                    m_bevelledRectangleWidget.CenterColor = value;
                 }
             }
         }
@@ -66,14 +73,31 @@ namespace Game {
             set => m_starWidget.IsVisible = value;
         }
 
+        public bool IsClickable {
+            get => m_clickableWidget.IsVisible;
+            set => m_clickableWidget.IsVisible = value;
+        }
+
         public TerrariaCraftingRecipeSlotWidget() {
             XElement node = ContentManager.Get<XElement>("Widgets/TerrariaCraftingRecipeSlotWidget");
             LoadContents(this, node);
-            m_backgroundWidget = Children.Find<RectangleWidget>("TerrariaCraftingRecipeSlotWidget.Background");
+            m_noBevelBackground = Children.Find<RectangleWidget>("TerrariaCraftingRecipeSlotWidget.NoBevelBackground");
             m_bevelledRectangleWidget = Children.Find<BevelledRectangleWidget>("TerrariaCraftingRecipeSlotWidget.BevelledRectangle");
             m_blockIconWidget = Children.Find<BlockIconWidget>("TerrariaCraftingRecipeSlotWidget.Icon");
             m_labelWidget = Children.Find<LabelWidget>("TerrariaCraftingRecipeSlotWidget.Count");
             m_starWidget = Children.Find<RectangleWidget>("TerrariaCraftingRecipeSlotWidget.Star");
+            m_clickableWidget = Children.Find<ClickableWidget>("TerrariaCraftingRecipeSlotWidget.Clickable");
+        }
+
+        public override void Update() {
+            base.Update();
+            if (m_clickableWidget.IsClicked) {
+                ScreensManager.SwitchScreen(
+                    BlocksManager.Blocks[Terrain.ExtractContents(Value)].GetBlockDescriptionScreen(Value),
+                    Value,
+                    new int[1] { Value }
+                );
+            }
         }
     }
 }
