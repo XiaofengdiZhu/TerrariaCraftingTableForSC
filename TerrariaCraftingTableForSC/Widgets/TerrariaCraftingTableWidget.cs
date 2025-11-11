@@ -24,8 +24,10 @@ namespace Game {
         public ButtonWidget m_filter2Button;
         public CanvasWidget m_recipeSelectorContainer;
         public SelectiveFlexPanelWidget m_recipeSelector;
+        public CanvasWidget m_ingredientSlotsContainer;
         public StackPanelWidget m_ingredientSlots;
         public TerrariaCraftingRecipeSlotWidget m_resultSlot;
+        public TerrariaCraftingRecipeSlotWidget m_remainsSlot;
         public ButtonWidget m_craftingX1Button;
         public ButtonWidget m_craftingX10Button;
         public ButtonWidget m_craftingX40Button;
@@ -105,11 +107,26 @@ namespace Game {
                 m_resultSlot.Count = recipe.ResultCount;
                 m_resultSlot.CenterColor = recipe.CraftableTimes > 0 ? CraftableColor : NoIngredientsColor;
                 m_resultSlot.IsClickable = true;
+                if (recipe.RemainsValue != 0
+                    && recipe.RemainsCount > 0) {
+                    m_ingredientSlotsContainer.Size = new Vector2(232f, 80f);
+                    m_remainsSlot.Value = recipe.RemainsValue;
+                    m_remainsSlot.Count = recipe.RemainsCount;
+                    m_remainsSlot.CenterColor = recipe.CraftableTimes > 0 ? CraftableColor : NoIngredientsColor;
+                    m_remainsSlot.IsClickable = true;
+                    m_remainsSlot.IsVisible = true;
+                }
+                else {
+                    m_ingredientSlotsContainer.Size = new Vector2(304f, 80f);
+                    m_remainsSlot.IsVisible = false;
+                }
                 m_addToFavoritesButtonStar.FillColor = recipe.IsFavorite ? Color.Gray : Color.Yellow;
             };
             UpdateSelector();
+            m_ingredientSlotsContainer = Children.Find<CanvasWidget>("IngredientSlotsContainer");
             m_ingredientSlots = Children.Find<StackPanelWidget>("IngredientSlots");
             m_resultSlot = Children.Find<TerrariaCraftingRecipeSlotWidget>("ResultSlot");
+            m_remainsSlot = Children.Find<TerrariaCraftingRecipeSlotWidget>("RemainsSlot");
             m_craftingX1Button = Children.Find<ButtonWidget>("CraftingX1Button");
             m_craftingX10Button = Children.Find<ButtonWidget>("CraftingX10Button");
             m_craftingX40Button = Children.Find<ButtonWidget>("CraftingX40Button");
