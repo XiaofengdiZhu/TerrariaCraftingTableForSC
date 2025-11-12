@@ -497,14 +497,15 @@ namespace Game {
             Dictionary<int, Dictionary<ComponentInventoryBase, int>> allRemoved = [];
             foreach ((int ingredient, int ingredientCount) in recipe.Ingredients) {
                 bool satisfied = false;
-                Dictionary<ComponentInventoryBase, int> removed = [];
                 if (ingredients.TryGetValue(ingredient, out IngredientInfo info)) {
+                    Dictionary<ComponentInventoryBase, int> removed = [];
                     int requiredCount = ingredientCount * times;
                     bool judgeData = Terrain.ExtractLight(ingredient) == 1;
+                    int cookedIngredient = judgeData ? Terrain.ReplaceLight(ingredient, 0) : Terrain.ExtractContents(ingredient);
                     foreach (ComponentInventoryBase inventory in info.Inventories) {
                         for (int i = 0; i < inventory.SlotsCount; i++) {
                             int value = inventory.GetSlotValue(i);
-                            if (judgeData ? value == ingredient : Terrain.ExtractContents(value) == ingredient) {
+                            if (judgeData ? value == cookedIngredient : Terrain.ExtractContents(value) == cookedIngredient) {
                                 int removedCount = inventory.RemoveSlotItems(i, requiredCount);
                                 if (removedCount > 0) {
                                     if (removed.TryGetValue(inventory, out int lastRemovedCount)) {
@@ -525,9 +526,9 @@ namespace Game {
                             break;
                         }
                     }
-                }
-                if (removed.Count > 0) {
-                    allRemoved.Add(ingredient, removed);
+                    if (removed.Count > 0) {
+                        allRemoved.Add(cookedIngredient, removed);
+                    }
                 }
                 if (!satisfied) {
                     allSatisfied = false;

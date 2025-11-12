@@ -32,6 +32,7 @@
     "5": "已添加到收藏",
     "6": "已从收藏中移除",
     "7": "筛选",
+    "8": "分组",
     "SortOrder": {
       "DisplayOrderAscending": "显示顺序升序",
       "DisplayOrderDescending": "显示顺序降序",
@@ -39,6 +40,11 @@
       "ContentsDescending": "ID 降序",
       "NameAscending": "名称升序",
       "NameDescending": "名称降序"
+    },
+    "GroupMethod": {
+      "None": "无",
+      "Craftable": "可合成",
+      "ResultCategory": "结果类别"
     }
   },
   "ContentWidgets": {

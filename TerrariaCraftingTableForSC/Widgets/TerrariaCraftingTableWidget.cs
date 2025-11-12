@@ -19,7 +19,14 @@ namespace Game {
             NameDescending
         }
 
+        public enum GroupMethod {
+            None,
+            Craftable,
+            ResultCategory
+        }
+
         public ButtonWidget m_sortButton;
+        public ButtonWidget m_groupButton;
         public ButtonWidget m_filter1Button;
         public ButtonWidget m_filter2Button;
         public CanvasWidget m_recipeSelectorContainer;
@@ -48,6 +55,7 @@ namespace Game {
 
         public static SortOrder m_sortOrder = SortOrder.DisplayOrderAscending;
         public static StringComparer m_stringComparer;
+        public static GroupMethod m_groupMethod = GroupMethod.Craftable;
 
         public static Color CraftableColor = Color.Transparent;
         public static Color NoIngredientsColor = new(70, 10, 0, 90);
@@ -70,6 +78,7 @@ namespace Game {
                 m_stringComparer = StringComparer.InvariantCulture;
             }
             LoadContents(this, ContentManager.Get<XElement>("Widgets/TerrariaCraftingTableWidget"));
+            m_groupButton = Children.Find<ButtonWidget>("GroupButton");
             m_sortButton = Children.Find<ButtonWidget>("SortButton");
             m_filter1Button = Children.Find<ButtonWidget>("Filter1Button");
             m_filter2Button = Children.Find<ButtonWidget>("Filter2Button");
@@ -193,10 +202,41 @@ namespace Game {
                         LanguageControl.Get(fName, "1"),
                         (SortOrder[])Enum.GetValues(typeof(SortOrder)),
                         56f,
-                        o => o is SortOrder sortOrder ? LanguageControl.Get(fName, "SortOrder", sortOrder.ToString()) : null,
+                        o => o is SortOrder sortOrder
+                            ? new LabelWidget {
+                                Text = LanguageControl.Get(fName, "SortOrder", sortOrder.ToString()),
+                                Color = sortOrder == m_sortOrder ? new Color(50, 150, 35) : Color.White,
+                                HorizontalAlignment = WidgetAlignment.Center,
+                                VerticalAlignment = WidgetAlignment.Center
+                            }
+                            : null,
                         o => {
                             if (o is SortOrder sortOrder) {
                                 m_sortOrder = sortOrder;
+                                UpdateSelector();
+                            }
+                        }
+                    )
+                );
+            }
+            if (m_groupButton.IsClicked) {
+                DialogsManager.ShowDialog(
+                    m_componentPlayer.GuiWidget,
+                    new ListSelectionDialog(
+                        LanguageControl.Get(fName, "8"),
+                        (GroupMethod[])Enum.GetValues(typeof(GroupMethod)),
+                        56f,
+                        o => o is GroupMethod group
+                            ? new LabelWidget {
+                                Text = LanguageControl.Get(fName, "GroupMethod", group.ToString()),
+                                Color = group == m_groupMethod ? new Color(50, 150, 35) : Color.White,
+                                HorizontalAlignment = WidgetAlignment.Center,
+                                VerticalAlignment = WidgetAlignment.Center
+                            }
+                            : null,
+                        o => {
+                            if (o is GroupMethod group) {
+                                m_groupMethod = group;
                                 UpdateSelector();
                             }
                         }
@@ -364,25 +404,76 @@ namespace Game {
                 m_filter2,
                 m_filter2String
             );
-            IOrderedEnumerable<CookedCraftingRecipe> sortedRecipes = m_sortOrder switch {
-                SortOrder.DisplayOrderDescending => recipes.OrderByDescending(recipe => BlocksManager
-                    .Blocks[Terrain.ExtractContents(recipe.ResultValue)]
-                    .GetDisplayOrder(recipe.ResultValue)
-                ),
-                SortOrder.ContentsAscending => recipes.OrderBy(recipe => Terrain.ExtractContents(recipe.ResultValue)),
-                SortOrder.ContentsDescending => recipes.OrderByDescending(recipe => Terrain.ExtractContents(recipe.ResultValue)),
-                SortOrder.NameAscending => recipes.OrderBy(
-                    recipe => BlocksManager.Blocks[Terrain.ExtractContents(recipe.ResultValue)]
-                        .GetDisplayName(m_subsystemTerrain, recipe.ResultValue),
-                    m_stringComparer
-                ),
-                SortOrder.NameDescending => recipes.OrderByDescending(
-                    recipe => BlocksManager.Blocks[Terrain.ExtractContents(recipe.ResultValue)]
-                        .GetDisplayName(m_subsystemTerrain, recipe.ResultValue),
-                    m_stringComparer
-                ),
-                _ => recipes.OrderBy(recipe => BlocksManager.Blocks[Terrain.ExtractContents(recipe.ResultValue)].GetDisplayOrder(recipe.ResultValue))
-            };
+            IOrderedEnumerable<CookedCraftingRecipe> sortedRecipes = null;
+            bool needThenBy = false;
+            if (m_groupMethod == GroupMethod.Craftable) {
+                switch (m_filter1) {
+                    case FilterMethod1.All:
+                        sortedRecipes = recipes.OrderBy(recipe => recipe.CraftableTimes > 0 ? 0 :
+                            recipe.AnyIngredientInInventory ? 1 : 2
+                        );
+                        needThenBy = true;
+                        break;
+                    case FilterMethod1.CraftableAndPartialIngredients:
+                        sortedRecipes = recipes.OrderBy(recipe => recipe.CraftableTimes > 0 ? 0 : 1);
+                        needThenBy = true;
+                        break;
+                }
+            }
+            else if (m_groupMethod == GroupMethod.ResultCategory) {
+                Dictionary<string, int> categoryToIndex = [];
+                for (int i = 0; i < BlocksManager.Categories.Count; i++) {
+                    categoryToIndex.Add(BlocksManager.Categories[i], i);
+                }
+                sortedRecipes = recipes.OrderBy(recipe => categoryToIndex[BlocksManager.Blocks[Terrain.ExtractContents(recipe.ResultValue)].GetCategory(recipe.ResultValue)]);
+                needThenBy = true;
+            }
+            if (needThenBy) {
+                sortedRecipes = m_sortOrder switch {
+                    SortOrder.DisplayOrderDescending => sortedRecipes.ThenByDescending(recipe => BlocksManager
+                        .Blocks[Terrain.ExtractContents(recipe.ResultValue)]
+                        .GetDisplayOrder(recipe.ResultValue)
+                    ),
+                    SortOrder.ContentsAscending => sortedRecipes.ThenBy(recipe => Terrain.ExtractContents(recipe.ResultValue)),
+                    SortOrder.ContentsDescending => sortedRecipes.ThenByDescending(recipe => Terrain.ExtractContents(recipe.ResultValue)),
+                    SortOrder.NameAscending => sortedRecipes.ThenBy(
+                        recipe => BlocksManager.Blocks[Terrain.ExtractContents(recipe.ResultValue)]
+                            .GetDisplayName(m_subsystemTerrain, recipe.ResultValue),
+                        m_stringComparer
+                    ),
+                    SortOrder.NameDescending => sortedRecipes.ThenByDescending(
+                        recipe => BlocksManager.Blocks[Terrain.ExtractContents(recipe.ResultValue)]
+                            .GetDisplayName(m_subsystemTerrain, recipe.ResultValue),
+                        m_stringComparer
+                    ),
+                    _ => sortedRecipes.ThenBy(recipe => BlocksManager.Blocks[Terrain.ExtractContents(recipe.ResultValue)]
+                        .GetDisplayOrder(recipe.ResultValue)
+                    )
+                };
+            }
+            else {
+                sortedRecipes = m_sortOrder switch {
+                    SortOrder.DisplayOrderDescending => recipes.OrderByDescending(recipe => BlocksManager
+                        .Blocks[Terrain.ExtractContents(recipe.ResultValue)]
+                        .GetDisplayOrder(recipe.ResultValue)
+                    ),
+                    SortOrder.ContentsAscending => recipes.OrderBy(recipe => Terrain.ExtractContents(recipe.ResultValue)),
+                    SortOrder.ContentsDescending => recipes.OrderByDescending(recipe => Terrain.ExtractContents(recipe.ResultValue)),
+                    SortOrder.NameAscending => recipes.OrderBy(
+                        recipe => BlocksManager.Blocks[Terrain.ExtractContents(recipe.ResultValue)]
+                            .GetDisplayName(m_subsystemTerrain, recipe.ResultValue),
+                        m_stringComparer
+                    ),
+                    SortOrder.NameDescending => recipes.OrderByDescending(
+                        recipe => BlocksManager.Blocks[Terrain.ExtractContents(recipe.ResultValue)]
+                            .GetDisplayName(m_subsystemTerrain, recipe.ResultValue),
+                        m_stringComparer
+                    ),
+                    _ => recipes.OrderBy(recipe => BlocksManager.Blocks[Terrain.ExtractContents(recipe.ResultValue)]
+                        .GetDisplayOrder(recipe.ResultValue)
+                    )
+                };
+            }
             foreach (CookedCraftingRecipe recipe in sortedRecipes) {
                 m_recipeSelector.AddItem(recipe);
                 if (selected != null

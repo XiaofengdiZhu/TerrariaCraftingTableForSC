@@ -9,6 +9,10 @@
               <RectangleWidget Name="Button.Rectangle" Size="26, 26" TextureLinearFilter="true" HorizontalAlignment="Center" VerticalAlignment="Center" Subtexture="{Textures/Gui/TerrariaCraftingTable/Sort}" OutlineColor="0, 0, 0, 0" FillColor="255, 255, 255" IsVisible="true" TextureAnisotropicFilter="true" BlendState="NonPremultiplied" />
             </BitmapButtonWidget>
             <CanvasWidget Size="12, 0" />
+            <BitmapButtonWidget Name="GroupButton" Size="26, 26" NormalSubtexture="{Textures/Gui/TerrariaCraftingTable/TableRows}" ClickedSubtexture="{Textures/Gui/TerrariaCraftingTable/TableRows}">
+              <RectangleWidget Name="Button.Rectangle" Size="26, 26" TextureLinearFilter="true" HorizontalAlignment="Center" VerticalAlignment="Center" Subtexture="{Textures/Gui/TerrariaCraftingTable/TableRows}" OutlineColor="0, 0, 0, 0" FillColor="255, 255, 255" IsVisible="true" TextureAnisotropicFilter="true" BlendState="NonPremultiplied" />
+            </BitmapButtonWidget>
+            <CanvasWidget Size="12, 0" />
             <BitmapButtonWidget Name="Filter1Button" Size="26, 26" NormalSubtexture="{Textures/Gui/TerrariaCraftingTable/Filter}" ClickedSubtexture="{Textures/Gui/TerrariaCraftingTable/Filter}">
               <RectangleWidget Name="Button.Rectangle" Size="26, 26" TextureLinearFilter="true" HorizontalAlignment="Center" VerticalAlignment="Center" Subtexture="{Textures/Gui/TerrariaCraftingTable/Filter}" OutlineColor="0, 0, 0, 0" FillColor="255, 255, 255" IsVisible="true" TextureAnisotropicFilter="true" BlendState="NonPremultiplied" />
             </BitmapButtonWidget>

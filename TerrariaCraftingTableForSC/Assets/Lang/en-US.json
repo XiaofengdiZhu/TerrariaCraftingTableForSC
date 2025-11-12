@@ -22,6 +22,11 @@
       "IngredientsName": "Search Ingredients Name",
       "IngredientsContents": "Search Ingredients Contents",
       "Favorite": "Favorite"
+    },
+    "GroupMethod": {
+      "None": "None",
+      "Craftable": "Craftable",
+      "ResultCategory": "Result Category"
     }
   },
   "TerrariaCraftingTableWidget": {
@@ -31,7 +36,8 @@
     "4": " (Supports RegExp)",
     "5": "Added to Favorites",
     "6": "Removed from Favorites",
-    "11": "Filter",
+    "7": "Filter",
+    "8": "Group",
     "SortOrder": {
       "DisplayOrderAscending": "Display Order Ascending",
       "DisplayOrderDescending": "Display Order Descending",
