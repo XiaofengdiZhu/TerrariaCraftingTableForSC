@@ -425,55 +425,35 @@ namespace Game {
                 for (int i = 0; i < BlocksManager.Categories.Count; i++) {
                     categoryToIndex.Add(BlocksManager.Categories[i], i);
                 }
-                sortedRecipes = recipes.OrderBy(recipe => categoryToIndex[BlocksManager.Blocks[Terrain.ExtractContents(recipe.ResultValue)].GetCategory(recipe.ResultValue)]);
+                sortedRecipes = recipes.OrderBy(recipe => categoryToIndex[BlocksManager.Blocks[Terrain.ExtractContents(recipe.ResultValue)]
+                    .GetCategory(recipe.ResultValue)]
+                );
                 needThenBy = true;
             }
-            if (needThenBy) {
-                sortedRecipes = m_sortOrder switch {
-                    SortOrder.DisplayOrderDescending => sortedRecipes.ThenByDescending(recipe => BlocksManager
-                        .Blocks[Terrain.ExtractContents(recipe.ResultValue)]
-                        .GetDisplayOrder(recipe.ResultValue)
-                    ),
-                    SortOrder.ContentsAscending => sortedRecipes.ThenBy(recipe => Terrain.ExtractContents(recipe.ResultValue)),
-                    SortOrder.ContentsDescending => sortedRecipes.ThenByDescending(recipe => Terrain.ExtractContents(recipe.ResultValue)),
-                    SortOrder.NameAscending => sortedRecipes.ThenBy(
-                        recipe => BlocksManager.Blocks[Terrain.ExtractContents(recipe.ResultValue)]
-                            .GetDisplayName(m_subsystemTerrain, recipe.ResultValue),
-                        m_stringComparer
-                    ),
-                    SortOrder.NameDescending => sortedRecipes.ThenByDescending(
-                        recipe => BlocksManager.Blocks[Terrain.ExtractContents(recipe.ResultValue)]
-                            .GetDisplayName(m_subsystemTerrain, recipe.ResultValue),
-                        m_stringComparer
-                    ),
-                    _ => sortedRecipes.ThenBy(recipe => BlocksManager.Blocks[Terrain.ExtractContents(recipe.ResultValue)]
-                        .GetDisplayOrder(recipe.ResultValue)
-                    )
-                };
-            }
-            else {
-                sortedRecipes = m_sortOrder switch {
-                    SortOrder.DisplayOrderDescending => recipes.OrderByDescending(recipe => BlocksManager
-                        .Blocks[Terrain.ExtractContents(recipe.ResultValue)]
-                        .GetDisplayOrder(recipe.ResultValue)
-                    ),
-                    SortOrder.ContentsAscending => recipes.OrderBy(recipe => Terrain.ExtractContents(recipe.ResultValue)),
-                    SortOrder.ContentsDescending => recipes.OrderByDescending(recipe => Terrain.ExtractContents(recipe.ResultValue)),
-                    SortOrder.NameAscending => recipes.OrderBy(
-                        recipe => BlocksManager.Blocks[Terrain.ExtractContents(recipe.ResultValue)]
-                            .GetDisplayName(m_subsystemTerrain, recipe.ResultValue),
-                        m_stringComparer
-                    ),
-                    SortOrder.NameDescending => recipes.OrderByDescending(
-                        recipe => BlocksManager.Blocks[Terrain.ExtractContents(recipe.ResultValue)]
-                            .GetDisplayName(m_subsystemTerrain, recipe.ResultValue),
-                        m_stringComparer
-                    ),
-                    _ => recipes.OrderBy(recipe => BlocksManager.Blocks[Terrain.ExtractContents(recipe.ResultValue)]
-                        .GetDisplayOrder(recipe.ResultValue)
-                    )
-                };
-            }
+            sortedRecipes = needThenBy
+                ? sortedRecipes.ThenByDescending(recipe => recipe.IsFavorite)
+                : recipes.OrderByDescending(recipe => recipe.IsFavorite);
+            sortedRecipes = m_sortOrder switch {
+                SortOrder.DisplayOrderDescending => sortedRecipes.ThenByDescending(recipe => BlocksManager
+                    .Blocks[Terrain.ExtractContents(recipe.ResultValue)]
+                    .GetDisplayOrder(recipe.ResultValue)
+                ),
+                SortOrder.ContentsAscending => sortedRecipes.ThenBy(recipe => Terrain.ExtractContents(recipe.ResultValue)),
+                SortOrder.ContentsDescending => sortedRecipes.ThenByDescending(recipe => Terrain.ExtractContents(recipe.ResultValue)),
+                SortOrder.NameAscending => sortedRecipes.ThenBy(
+                    recipe => BlocksManager.Blocks[Terrain.ExtractContents(recipe.ResultValue)]
+                        .GetDisplayName(m_subsystemTerrain, recipe.ResultValue),
+                    m_stringComparer
+                ),
+                SortOrder.NameDescending => sortedRecipes.ThenByDescending(
+                    recipe => BlocksManager.Blocks[Terrain.ExtractContents(recipe.ResultValue)]
+                        .GetDisplayName(m_subsystemTerrain, recipe.ResultValue),
+                    m_stringComparer
+                ),
+                _ => sortedRecipes.ThenBy(recipe => BlocksManager.Blocks[Terrain.ExtractContents(recipe.ResultValue)]
+                    .GetDisplayOrder(recipe.ResultValue)
+                )
+            };
             foreach (CookedCraftingRecipe recipe in sortedRecipes) {
                 m_recipeSelector.AddItem(recipe);
                 if (selected != null
