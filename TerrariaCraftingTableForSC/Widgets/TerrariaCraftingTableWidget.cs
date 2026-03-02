@@ -503,8 +503,7 @@ namespace Game {
                             return;
                         }
                         if (isContents) {
-                            if (int.TryParse(str, out int num)
-                                || num > 1023) {
+                            if (int.TryParse(str, out _)) {
                                 m_filter2 = filterMethod2;
                                 m_filter2String = str;
                                 UpdateSelector();

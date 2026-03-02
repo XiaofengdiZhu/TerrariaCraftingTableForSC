@@ -1,0 +1,56 @@
+{
+  "Blocks": {
+    "TerrariaCraftingTableBlock:0": {
+      "DisplayName": "Mesa de trabajo de Terraria",
+      "Description": "Una mesa de trabajo que permite fabricar objetos directamente como en el juego «Terraria», sin necesidad de colocar los materiales manualmente. Los materiales provienen de la mochila del jugador y de los cofres conectados a la mesa de trabajo de Terraria. Los cofres más lejanos pueden conectarse mediante otros cofres enlazados a la mesa. El resultado de la fabricación se colocará en la mochila del jugador.",
+      "CRDescription:0": "Usar la mesa de trabajo para fabricar la mesa de trabajo de Terraria"
+    }
+  },
+  "SubsystemTerrariaCraftingTableBlockBehavior": {
+    "1": "Fabricado {0} veces, {1} x {2}",
+    "2": "Fabricado {0} veces, {1} x {2}, {2} x {3}",
+    "3": "Fallo en la fabricación, puede que no haya suficientes materiales",
+    "FilterMethod1": {
+      "All": "Todos",
+      "Craftable": "Se puede fabricar",
+      "CraftableAndPartialIngredients": "Se puede fabricar y faltan algunos materiales"
+    },
+    "FilterMethod2": {
+      "All": "Todos",
+      "ResultName": "Buscar por nombre del resultado",
+      "ResultContents": "Buscar por ID del resultado",
+      "IngredientsName": "Buscar por nombre del material",
+      "IngredientsContents": "Buscar por ID del material",
+      "Favorite": "Favoritos"
+    }
+  },
+  "TerrariaCraftingTableWidget": {
+    "1": "Orden de clasificación (bloques de resultado)",
+    "2": "Categoría | Buscar",
+    "3": "ID de bloque inválido",
+    "4": "(Admite expresiones regulares)",
+    "5": "Añadido a favoritos",
+    "6": "Eliminado de favoritos",
+    "7": "Filtrar",
+    "8": "Agrupar",
+    "SortOrder": {
+      "DisplayOrderAscending": "Orden de visualización ascendente",
+      "DisplayOrderDescending": "Orden de visualización descendente",
+      "ContentsAscending": "ID ascendente",
+      "ContentsDescending": "ID descendente",
+      "NameAscending": "Nombre ascendente",
+      "NameDescending": "Nombre descendente"
+    },
+    "GroupMethod": {
+      "None": "Ninguno",
+      "Craftable": "Se puede fabricar",
+      "ResultCategory": "Categoría del resultado"
+    }
+  },
+  "ContentWidgets": {
+    "TerrariaCraftingTableWidget": {
+      "1": "Mesa de trabajo de Terraria",
+      "2": "Máximo"
+    }
+  }
+}

@@ -3,8 +3,7 @@
 [Click To Download 点此下载](https://github.com/XiaofengdiZhu/TerrariaCraftingTableForSC/releases)
 
 This mod adds a new block: the Terraria Crafting Table.  
-When you interact with the Terraria Crafting Table, you can directly craft items without placing ingredients in the slots. The behavior is similar to the game
-*Terraria*.  
+When you interact with the Terraria Crafting Table, you can directly craft items without placing ingredients in the slots. The behavior is similar to the game *Terraria*.  
 The ingredients are taken from your inventory and chests connected to the Terraria Crafting Table. Chests further away can be connected to the Terraria Crafting Table through other chests.  
 The crafting results will be placed into the player's inventory.
 
@@ -50,3 +49,7 @@ The crafting results will be placed into the player's inventory.
 > By ChatGPT 由 ChatGPT 创作
 
 ![Icon 图标](https://github.com/XiaofengdiZhu/TerrariaCraftingTableForSC/blob/main/DocRes/OriginalIcon.webp?raw=true)
+
+## Thanks 感谢
+
+* Spanish Translation 西班牙语翻译: Samuelsan03 (From Discord)
