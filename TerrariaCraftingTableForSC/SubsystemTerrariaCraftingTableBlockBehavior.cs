@@ -35,6 +35,7 @@ namespace Game {
         public readonly HashSet<CookedCraftingRecipe> FavoriteCookedRecipes = [];
         public volatile bool m_isInitialized;
         public volatile bool m_isDisposed;
+        public TaskCompletionSource m_initializationTaskCompletionSource = new();
         public const string fName = "SubsystemTerrariaCraftingTableBlockBehavior";
 
         public override void Load(ValuesDictionary valuesDictionary) {
@@ -149,78 +150,78 @@ namespace Game {
                     );
                 }
             }
-            Task.Run(async () => {
-                    await Task.Delay(1000);
+            Task.Run(CookRecipes);
+        }
+
+        public async Task CookRecipes() {
+            await Task.Delay(1000);
+            if (m_isDisposed) {
+                return;
+            }
+            Dictionary<string, HashSet<int>> craftingId2BlockContents = [];
+            HashSet<int> furnitureContents = [];
+            for (int contents = 0; contents < BlocksManager.Blocks.Length; contents++) {
+                Block block = BlocksManager.Blocks[contents];
+                if (block is null or AirBlock) {
+                    continue;
+                }
+                if (block is FurnitureBlock) {
+                    furnitureContents.Add(contents);
+                }
+                string craftingId = block.GetCraftingId(contents);
+                if (string.IsNullOrWhiteSpace(craftingId)) {
+                    continue;
+                }
+                if (craftingId2BlockContents.TryGetValue(craftingId, out HashSet<int> hashSet)) {
+                    hashSet.Add(contents);
+                }
+                else {
+                    craftingId2BlockContents.Add(craftingId, [contents]);
+                }
+            }
+            CookedRecipes.Clear();
+            foreach (CraftingRecipe recipe in CraftingRecipesManager.Recipes) {
+                try {
                     if (m_isDisposed) {
                         return;
                     }
-                    Dictionary<string, HashSet<int>> craftingId2BlockContents = [];
-                    HashSet<int> furnitureContents = [];
-                    for (int contents = 0; contents < BlocksManager.Blocks.Length; contents++) {
-                        Block block = BlocksManager.Blocks[contents];
-                        if (block is not null and not AirBlock) {
-                            if (block is FurnitureBlock) {
-                                furnitureContents.Add(contents);
-                            }
-                            string craftingId = block.GetCraftingId(contents);
-                            if (string.IsNullOrWhiteSpace(craftingId)) {
-                                continue;
-                            }
-                            if (craftingId2BlockContents.TryGetValue(craftingId, out HashSet<int> hashSet)) {
-                                hashSet.Add(contents);
-                            }
-                            else {
-                                craftingId2BlockContents.Add(craftingId, [contents]);
-                            }
+                    if (recipe.RequiredHeatLevel != 0
+                        || furnitureContents.Contains(Terrain.ExtractContents(recipe.ResultValue))) {
+                        continue;
+                    }
+                    Dictionary<string, int> rawIngredients = [];
+                    foreach (string ingredient in recipe.Ingredients) {
+                        if (string.IsNullOrWhiteSpace(ingredient)) {
+                            continue;
+                        }
+                        if (rawIngredients.TryGetValue(ingredient, out int count)) {
+                            rawIngredients[ingredient] = count + 1;
+                        }
+                        else {
+                            rawIngredients.Add(ingredient, 1);
                         }
                     }
-                    CookedRecipes.Clear();
-                    foreach (CraftingRecipe recipe in CraftingRecipesManager.Recipes) {
-                        try {
-                            if (m_isDisposed) {
-                                return;
-                            }
-                            if (recipe.RequiredHeatLevel != 0
-                                || furnitureContents.Contains(Terrain.ExtractContents(recipe.ResultValue))) {
-                                continue;
-                            }
-                            Dictionary<string, int> rawIngredients = [];
-                            foreach (string ingredient in recipe.Ingredients) {
-                                if (string.IsNullOrWhiteSpace(ingredient)) {
-                                    continue;
-                                }
-                                if (rawIngredients.TryGetValue(ingredient, out int count)) {
-                                    rawIngredients[ingredient] = count + 1;
-                                }
-                                else {
-                                    rawIngredients.Add(ingredient, 1);
-                                }
-                            }
-                            foreach (Dictionary<int, int> cookedIngredients in GetCookedIngredientCombinations(
-                                    rawIngredients,
-                                    craftingId2BlockContents
-                                )) {
-                                CookedCraftingRecipe cookedRecipe = new(
-                                    recipe.ResultValue,
-                                    recipe.ResultCount,
-                                    recipe.RemainsValue,
-                                    recipe.RemainsCount,
-                                    recipe.RequiredPlayerLevel,
-                                    cookedIngredients
-                                );
-                                if (FavoriteCookedRecipes.Contains(cookedRecipe)) {
-                                    cookedRecipe.IsFavorite = true;
-                                }
-                                CookedRecipes.Add(cookedRecipe);
-                            }
+                    foreach (Dictionary<int, int> cookedIngredients in GetCookedIngredientCombinations(rawIngredients, craftingId2BlockContents)) {
+                        CookedCraftingRecipe cookedRecipe = new(
+                            recipe.ResultValue,
+                            recipe.ResultCount,
+                            recipe.RemainsValue,
+                            recipe.RemainsCount,
+                            recipe.RequiredPlayerLevel,
+                            cookedIngredients
+                        );
+                        if (FavoriteCookedRecipes.Contains(cookedRecipe)) {
+                            cookedRecipe.IsFavorite = true;
                         }
-                        catch (Exception e) {
-                            Log.Error($"[TerrariaCraftingTable] Error on cooking recipe: {e.Message}]");
-                        }
+                        CookedRecipes.Add(cookedRecipe);
                     }
-                    m_isInitialized = true;
                 }
-            );
+                catch (Exception e) {
+                    Log.Error($"[TerrariaCraftingTable] Error on cooking recipe: {e.Message}]");
+                }
+            }
+            m_isInitialized = true;
+            m_initializationTaskCompletionSource.TrySetResult();
         }
 
         public override void Save(ValuesDictionary valuesDictionary) {
@@ -288,6 +289,7 @@ namespace Game {
         public override void Dispose() {
             m_isDisposed = true;
             m_isInitialized = false;
+            m_initializationTaskCompletionSource.TrySetCanceled();
             CookedRecipes?.Clear();
             base.Dispose();
         }
