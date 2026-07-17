@@ -23,7 +23,7 @@
         <OutputPath>bin\Release\</OutputPath>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="SurvivalcraftAPI.Survivalcraft" Version="1.9.0.2" />
+        <PackageReference Include="SurvivalcraftAPI.Survivalcraft" Version="1.9.2" />
     </ItemGroup>
     <ItemGroup>
         <None Update="modinfo.json">
@@ -44,4 +44,11 @@
         <Compile Include="Widgets\TerrariaCraftingRecipeSlotWidget.cs" />
         <Compile Include="Widgets\TerrariaCraftingTableWidget.cs" />
     </ItemGroup>
+    <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+        <PropertyGroup>
+            <PathOfScmod>$(TargetDir)..\$(AssemblyName).scmod</PathOfScmod>
+        </PropertyGroup>
+        <ZipDirectory SourceDirectory="$(TargetDir)" DestinationFile="$(PathOfScmod)" Overwrite="true" />
+        <Message Text="The scmod file has been created: $(PathOfScmod)" Importance="high" />
+    </Target>
 </Project>

@@ -487,7 +487,7 @@ namespace Game {
                 }
                 default: return;
             }
-            string title = LanguageControl.Get(fName, "FilterMethod", filterMethod2.ToString());
+            string title = LanguageControl.Get(fName, "FilterMethod2", filterMethod2.ToString());
             if (!isContents) {
                 title += LanguageControl.Get(fName, "4");
             }
